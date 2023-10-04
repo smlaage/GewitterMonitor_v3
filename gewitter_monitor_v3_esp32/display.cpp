@@ -39,6 +39,27 @@ void Display::enter_menu(void) {
 }
 
 //--------------------------------------------------------------------------------
+void Display::enter_voltage(void) {
+  if (!is_on) return;
+
+  etft.setTextDatum(TL_DATUM);
+  etft.fillRect(menu_x, menu_y, menu_width, menu_height, TFT_BLACK);
+  etft.drawRect(menu_x - 1, menu_y - 1, menu_width + 2, menu_height + 2, axis_color);
+  etft.drawString("Voltage Adjustment", menu_x + menu_x_label, menu_y + menu_y_pos + 2 * menu_y_delta);
+  etft.drawString("Channel green [V]", menu_x + menu_x_label, menu_y + menu_y_pos + 5 * menu_y_delta);
+  etft.drawString("Channel red [v]", menu_x + menu_x_label, menu_y + menu_y_pos + 7 * menu_y_delta);
+}
+
+//--------------------------------------------------------------------------------
+void Display::update_voltage(char v_green[], char v_red[]) {
+  if (!is_on) return;
+
+  etft.setTextDatum(TR_DATUM);
+  etft.drawString(v_green, menu_x + menu_x_value, menu_y + menu_y_pos + 5 * menu_y_delta);
+  etft.drawString(v_red, menu_x + menu_x_value, menu_y + menu_y_pos + 7 * menu_y_delta);
+}
+
+//--------------------------------------------------------------------------------
 void Display::exit_menu(void) {
   if (!is_on) return;
 
@@ -148,6 +169,8 @@ void Display::stop(void) {
 
 //------------------------------------------------------------------------------------------
 void Display::refresh_graph(void) {
+  extern int gl_scale_min;
+  int scale_min;
   extern uint16_t left_cnt, right_cnt;
   extern uint32_t left_sum, right_sum;
   extern uint32_t data_left[], data_right[], data_hpa[];
@@ -166,6 +189,8 @@ void Display::refresh_graph(void) {
   bool trend_minus = true;
   
   if (!is_on) return;
+
+  scale_min = gl_scale_min - 1;
 
   // Serial.print("Timeout: "); Serial.println(timeout_cnt);
   if (timeout_cnt > 0) {

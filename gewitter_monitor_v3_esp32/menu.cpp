@@ -11,6 +11,7 @@ void Menu::init(void) {
   extern int gl_alarm_level; // red, e.g. 5000
   extern int gl_alarm_window;
   extern int gl_hpa_offset;
+  extern int gl_scale_min;
   extern bool bmp_found;
   int i;
   char buf[10];
@@ -22,6 +23,7 @@ void Menu::init(void) {
   display_timeout = gl_display_timeout;
   alarm_level = gl_alarm_level;
   alarm_window = gl_alarm_window;
+  scale_min = gl_scale_min;
   if (bmp_found) {
     hpa = (bmp.readPressure() + gl_hpa_offset) / 100;
   } else {
@@ -44,13 +46,16 @@ void Menu::init(void) {
   tft.draw_menu_item(5, labels[5], buf);
   itoa(alarm_window, buf, 10);
   tft.draw_menu_item(6, labels[6], buf);
+  itoa(scale_min, buf, 10);
+  tft.draw_menu_item(7, labels[7], buf);
   if (bmp_found) {
     itoa(hpa, buf, 10);
   } else {
     strcpy(buf, "----");
   }
-  tft.draw_menu_item(7, labels[7], buf);
-  tft.draw_menu_item(8, labels[8], " ");
+  tft.draw_menu_item(8, labels[8], buf);
+  tft.draw_menu_item(9, labels[9], " ");
+  tft.draw_menu_item(10, labels[10], " ");
   tft.set_menu_item(item);
 }
 
@@ -65,6 +70,7 @@ void Menu::process_key(uint8_t key) {
   extern int gl_alarm_level; // red, e.g. 5000
   extern int gl_alarm_window;
   extern int gl_hpa_offset;
+  extern int gl_scale_min;
   extern bool bmp_found;
   char buf[10];
   uint8_t pnt = 0;
@@ -116,6 +122,14 @@ void Menu::process_key(uint8_t key) {
           tft.update_menu_item(item, buf);
           break;          
         case 7:
+          if (scale_min > 400) {
+            if (scale_min > 1000) scale_min -= 500;
+            else scale_min -= 100;
+          }
+          itoa(scale_min, buf, 10);
+          tft.update_menu_item(item, buf);
+          break; 
+        case 8:
           if (bmp_found) {
             if (hpa <= 900) hpa = 1100;
             else hpa -= 1;
@@ -131,7 +145,7 @@ void Menu::process_key(uint8_t key) {
     case 2:       // up key
       reset_item(item, buf);
       tft.clear_menu_item(item, buf);
-      if (item == 0) item = 8;
+      if (item == 0) item = 10;
       else item -= 1;
       tft.set_menu_item(item);
       break;
@@ -181,6 +195,14 @@ void Menu::process_key(uint8_t key) {
           tft.update_menu_item(item, buf);
           break;          
         case 7:
+          if (scale_min < 3000) {
+            if (scale_min < 1000) scale_min += 100;
+            else scale_min += 500;
+          }
+          itoa(scale_min, buf, 10);
+          tft.update_menu_item(item, buf);
+          break;
+        case 8:
           if (bmp_found) {
             if (hpa >= 1100) hpa = 900;
             else hpa += 1;
@@ -196,7 +218,7 @@ void Menu::process_key(uint8_t key) {
     case 8:       // down key
       reset_item(item, buf);
       tft.clear_menu_item(item, buf);
-      if (item == 8) item = 0;
+      if (item == 10) item = 0;
       else item += 1;
       tft.set_menu_item(item);
       break;
@@ -235,6 +257,7 @@ void Menu::process_key(uint8_t key) {
           gl_alarm_level = alarm_level;
           NVS.setInt(nvs_alarm_level, gl_alarm_level);
           Serial.print("Alarm level: "); Serial.println(alarm_level);
+          calc_alarm_levels();
           show_confirmation();
           break;
 
@@ -246,6 +269,13 @@ void Menu::process_key(uint8_t key) {
           break;
 
         case 7:
+          gl_scale_min = scale_min;
+          NVS.setInt(nvs_scale_min, gl_scale_min);
+          Serial.print("Scale min: "); Serial.println(scale_min);
+          show_confirmation();
+          break;
+
+        case 8:
           if (bmp_found) {
             gl_hpa_offset = hpa * 100 - bmp.readPressure();
             NVS.setInt(nvs_hpa_offset, gl_hpa_offset);
@@ -253,7 +283,11 @@ void Menu::process_key(uint8_t key) {
           }
           break;
 
-        case 8:
+        case 9:
+          show_voltage();
+          break;
+
+        case 10:
           is_on = false;
           tft.exit_menu();
           break;
@@ -283,6 +317,7 @@ void Menu::reset_item(int item, char buf[]) {
   extern int gl_alarm_level; // red, e.g. 5000
   extern int gl_alarm_window;
   extern int gl_hpa_offset;
+  extern int gl_scale_min;
   extern bool bmp_found;
 
   switch (item) {
@@ -314,7 +349,11 @@ void Menu::reset_item(int item, char buf[]) {
       alarm_window = gl_alarm_window; itoa(alarm_window, buf, 10);
       break;
 
-    case 7: 
+    case 7:
+      scale_min = gl_scale_min; itoa(scale_min, buf, 10);
+      break;
+
+    case 8: 
       if (bmp_found) {
         hpa = (bmp.readPressure() + gl_hpa_offset) / 100;
       } else {
@@ -324,7 +363,11 @@ void Menu::reset_item(int item, char buf[]) {
       else strcpy(buf, "----");
       break;
 
-    case 8:
+    case 9:
+      buf[0] = '\0';
+      break;
+
+    case 10:
       buf[0] = '\0';
       break;
 
@@ -332,6 +375,53 @@ void Menu::reset_item(int item, char buf[]) {
       Serial.print("menu -> reset_item: item error, "); Serial.println(item);
       buf[0] = '\0';
   }
+}
+
+//--------------------------------------------------------------------------------
+void Menu::show_voltage(void) {
+  extern Display tft;
+  extern bool gl_read_flash_data;
+  bool exit_loop = false;
+  long voltage_a, voltage_b;
+  char buf_a[10], buf_b[10];
+
+  // stop interrupr process on ADC
+  gl_read_flash_data = false;
+
+  // clear menu window
+  tft.enter_voltage();
+
+  // show voltage data via ADC
+  while (!exit_loop) {
+    voltage_a = 0;
+    voltage_b = 0;
+    for (int i = 0; (i < 8) && (!exit_loop); ++i) {
+      if (read_keyboard() > 0) exit_loop = true;
+      voltage_a += analogRead(PIN_VOLTAGE_A);
+      delay(5);
+      voltage_b += analogRead(PIN_VOLTAGE_B);
+      delay(5);
+    }
+    voltage_a = voltage_a * VOLTAGE_CONVERSION / 80000;
+    voltage_b = voltage_b * VOLTAGE_CONVERSION / 80000;
+    
+    itoaf(voltage_a, buf_a, 4, 2, false);
+    Serial.print(buf_a);
+    itoaf(voltage_b, buf_b, 4, 2, false);
+    Serial.write(' '); Serial.println(buf_b);
+    tft.update_voltage(buf_a, buf_b);
+    for (int i = 0; (i < 8) && (!exit_loop); ++i) {
+      if (read_keyboard() > 0) exit_loop = true;
+      delay(20);
+    }
+  }
+
+  // restart interrupt process on ADC
+  gl_read_flash_data = true;
+
+  // get back to menu
+  init();
+
 }
 
 //--------------------------------------------------------------------------------

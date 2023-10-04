@@ -28,6 +28,8 @@ int gl_alarm_1,     // display on, e.g. 1000
     gl_alarm_4;     // yellow_red, e.g. 4000
 int gl_alarm_window;
 int gl_display_timeout;
+int gl_read_flash_data = true;
+int gl_scale_min;
 
 // global variables
 hw_timer_t *timer_1 = NULL;   // triggers every second, updates x-axis and time display
@@ -158,6 +160,8 @@ void IRAM_ATTR timer_3_isr(void) {
   static bool left_detect = false, right_detect = false;
   uint16_t left_adc, right_adc;
 
+  if (!gl_read_flash_data) return;
+
   portENTER_CRITICAL_ISR(&timer_3_Mux);
 
   if (left_channel) {
@@ -237,6 +241,11 @@ void setup() {
   calc_alarm_levels();
   gl_alarm_window = NVS.getInt(nvs_alarm_window);
   gl_display_timeout = NVS.getInt(nvs_display_timeout);
+  gl_scale_min = NVS.getInt(nvs_scale_min);
+  if (gl_scale_min < 400) {
+    gl_scale_min = DEFAULT_SCALE_MIN;
+    NVS.setInt(nvs_scale_min, gl_scale_min);
+  }
 
   Wire.begin();
   Wire.setClock(400000);
@@ -357,21 +366,25 @@ void loop() {
     }
   }
 
-  if ((gl_flash_on > 0) && (job_flags & (1 << JF_FLASH_LEFT))) {
+  if (job_flags & (1 << JF_FLASH_LEFT)) {
     portENTER_CRITICAL(&timer_3_Mux);
     job_flags &= ~(1 << JF_FLASH_LEFT);
     portEXIT_CRITICAL(&timer_3_Mux);
-    digitalWrite(PIN_FLASH_LED_LEFT, HIGH);
-    left_flash_cnt = gl_flash_duration;
+    if (gl_flash_on > 0) {
+      digitalWrite(PIN_FLASH_LED_LEFT, HIGH);
+      left_flash_cnt = gl_flash_duration;
+    }
     if (!menu.is_active()) tft.draw_left_cnt_sum(left_cnt, left_sum, right_sum);
   }
 
-  if ((gl_flash_on > 0) && (job_flags & (1 << JF_FLASH_RIGHT))) {
+  if (job_flags & (1 << JF_FLASH_RIGHT)) {
     portENTER_CRITICAL(&timer_3_Mux);
     job_flags &= ~(1 << JF_FLASH_RIGHT);
     portEXIT_CRITICAL(&timer_3_Mux);
-    digitalWrite(PIN_FLASH_LED_RIGHT, HIGH);
-    right_flash_cnt = gl_flash_duration;
+    if (gl_flash_on > 0) {
+      digitalWrite(PIN_FLASH_LED_RIGHT, HIGH);
+      right_flash_cnt = gl_flash_duration;
+    }
     if (!menu.is_active()) tft.draw_right_cnt_sum(right_cnt, left_sum, right_sum);
   }
 
@@ -413,6 +426,13 @@ void loop() {
           break;
 
         case 4:   // right button
+          if (gl_read_flash_data) {
+            tft.show_message("Detector off");
+            gl_read_flash_data = false;
+          } else {
+            tft.show_message("Detector on");
+            gl_read_flash_data = true;
+          }
           break;
 
         case 8:   // down button

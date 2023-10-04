@@ -15,6 +15,8 @@
 #define PIN_BT_CENTER        33
 #define PIN_ADC_LEFT         35
 #define PIN_ADC_RIGHT        34
+#define PIN_VOLTAGE_A        36
+#define PIN_VOLTAGE_B        39
 #define PIN_FLASH_LED_LEFT   26
 #define PIN_FLASH_LED_RIGHT  27
 #define PIN_LED_GREEN        14
@@ -37,6 +39,9 @@
 #define DEFAULT_ALARM_WINDOW            5
 #define DEFAULT_DISPLAY_TIMEOUT        10
 #define DEFAULT_FLASH_ON                1
+#define DEFAULT_SCALE_MIN             500
+
+#define VOLTAGE_CONVERSION 3797
 
 #define DEMO_MODE                       0
 
@@ -53,5 +58,6 @@ const char nvs_flash_duration[] = "flash_duration";
 const char nvs_alarm_level[] = "alarm_level";
 const char nvs_alarm_window[] = "alarm_window";
 const char nvs_display_timeout[] = "disp_timeout";
+const char nvs_scale_min[] = "scale_min";
 
 #endif

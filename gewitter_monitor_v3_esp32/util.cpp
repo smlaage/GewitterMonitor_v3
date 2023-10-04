@@ -185,12 +185,12 @@ void update_alarm(void) {
 //---------------------------------------------------------------------
 void calc_alarm_levels(void) {
   extern uint32_t gl_alarm_level, gl_alarm_1, gl_alarm_2, gl_alarm_3, gl_alarm_4;
+  int step = gl_alarm_level / 5;
 
-  int step= gl_alarm_level / 20;
-  gl_alarm_1 = 3 * step;
-  gl_alarm_2 = 8 * step;
-  gl_alarm_3 = 12 * step;
-  gl_alarm_4 = 16 * step;
+  gl_alarm_1 = 1 * step;
+  gl_alarm_2 = 2 * step;
+  gl_alarm_3 = 3 * step;
+  gl_alarm_4 = 4 * step;
 }
 
 //---------------------------------------------------------------------
@@ -199,7 +199,8 @@ void set_alarm_leds(uint32_t data_mean) {
   extern Display tft;
 
   // Serial.print("data_mean: "); Serial.println(data_mean);
-  // switch display on in case the mean is above 1st alarm level
+
+  // switch display on in case the mean is above first alarm level
   if (data_mean > gl_alarm_1) {
     tft.start();
   }

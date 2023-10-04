@@ -34,12 +34,12 @@ class Display {
     const uint8_t small_tick = 6, large_tick = 12;
     const uint8_t regression_window = 60;
     const uint8_t scale_window = 120;
-    const uint32_t scale_min = 499;
-    const uint16_t menu_x = 65, menu_y = 30;
-    const uint16_t menu_width = 350, menu_height = 260;
+    // const uint32_t scale_min;
+    const uint16_t menu_x = 65, menu_y = 17;
+    const uint16_t menu_width = 350, menu_height = 286;
     const uint16_t menu_x_label = 20;
     const uint16_t menu_x_value = 330;
-    const uint16_t menu_y_pos = 25;
+    const uint16_t menu_y_pos = 12;
     const uint16_t menu_y_delta = 25;
 
 
@@ -65,6 +65,8 @@ class Display {
     void draw_right_cnt_sum(uint16_t right_cnt, uint32_t left_sum, uint32_t right_sum);
     void show_message(char msg[]);
     int toogle_zoom_mode(void);
+    void enter_voltage(void);
+    void update_voltage(char v_green[], char v_red[]); 
 };
 
 #endif
