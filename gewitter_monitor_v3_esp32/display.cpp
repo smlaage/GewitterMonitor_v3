@@ -47,7 +47,7 @@ void Display::enter_voltage(void) {
   etft.drawRect(menu_x - 1, menu_y - 1, menu_width + 2, menu_height + 2, axis_color);
   etft.drawString("Voltage Adjustment", menu_x + menu_x_label, menu_y + menu_y_pos + 2 * menu_y_delta);
   etft.drawString("Channel green [V]", menu_x + menu_x_label, menu_y + menu_y_pos + 5 * menu_y_delta);
-  etft.drawString("Channel red [v]", menu_x + menu_x_label, menu_y + menu_y_pos + 7 * menu_y_delta);
+  etft.drawString("Channel red [V]", menu_x + menu_x_label, menu_y + menu_y_pos + 7 * menu_y_delta);
 }
 
 //--------------------------------------------------------------------------------

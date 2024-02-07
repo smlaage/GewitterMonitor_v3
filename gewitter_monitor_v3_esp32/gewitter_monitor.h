@@ -35,7 +35,7 @@
 #define DEFAULT_HPA_OFFSET           4000
 #define DEFAULT_DETECTION_THRESHOLD   150
 #define DEFAULT_FLASH_DURATION        100
-#define DEFAULT_ALARM_LEVEL          8000
+#define DEFAULT_ALARM_LEVEL          5000
 #define DEFAULT_ALARM_WINDOW            5
 #define DEFAULT_DISPLAY_TIMEOUT        10
 #define DEFAULT_FLASH_ON                1
