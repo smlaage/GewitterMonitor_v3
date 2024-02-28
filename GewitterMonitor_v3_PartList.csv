@@ -1,0 +1,57 @@
+﻿Beschreibung;Referenz;Wert;Footprint;Anzahl;Artikel-Nr
+;;;;;
+Hauptplatine;;;;;
+Keramik-Kondensator;C1, C3, C4, C7-C13, C16;100n;Capacitor_THT:C_Disc_D3.0mm_W2.0mm_P2.50mm;11;X7R-2,5 100N KOM
+Elko, 16V;C2, C14, C15;470u;Capacitor_THT:CP_Radial_D10.0mm_P5.00mm;3;FM-A 470U 16A
+Keramik-Kondensator;C5, C6;10n;Capacitor_THT:C_Disc_D5.1mm_W3.2mm_P5.00mm;2;C3C0G 10N 100
+Schottky-Diode;D1, D2;BAT43;Diode_THT:D_DO-35_SOD27_P7.62mm_Horizontal;2;
+LED weiß, 5mm;D3;Flash A;LED_THT:LED_D5.0mm;1;
+LED grün, 3mm;D4;Green;LED_THT:LED_D3.0mm;1;
+LED weiß, 5mm;D5;Flash B;LED_THT:LED_D5.0mm;1;
+LED gelb, 3mm;D7;Yellow;LED_THT:LED_D3.0mm;1;
+LED rot, 3mm;D8;Red;LED_THT:LED_D3.0mm;1;
+DC Stromversorgungs-Buchse;J1;PowerSupply-DC;Einbaukupplung für Holstecker, gewinkelt;1;LUM NEB 1R
+Schraubklemme, 2-polig, lötbar;J2;ScrewHeader;SLW-Footprints:ScrewTerminal_1x2;1;CTB0502-2
+Pinleiste für Jumper;J3;SingleMode;Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical;1;
+Wannenstecker, 2x3, gerade;J4;Anntenna;SLW-Footprints:Pfosten-Buchse_02x03;1;WSL 6G
+MOS-FET;Q1;IRLML2244;SLW-Footprints:IRLML2244;1;IRLML 2244
+Transistor;Q2-Q4;BC549;Package_TO_SOT_THT:TO-92_HandSolder;3;BC 549C
+Widerstand 1/4 W, 5%;R1;47k;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;1;
+Widerstand 1/4 W, 5%;R2, R7, R10, R12, R13;1M;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;5;
+Widerstand 1/4 W, 5%;R3, R4;10k;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;2;
+Widerstand 1/4 W, 5%;R5, R6;4k7;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;2;
+Widerstand 1/4 W, 5%;R8, R14, R19, R22;22k;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;4;
+Widerstand 1/4 W, 5%;R9, R11;1k5;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;2;
+Widerstand 1/4 W, 5%;R15;2k2;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;1;
+Widerstand 1/4 W, 5%;R16;100;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;1;
+Widerstand 1/4 W, 5%;R17, R20;33k;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;2;
+Widerstand 1/4 W, 5%;R18, R21, R23-R25;150;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;5;
+Widerstand 1/4 W, 5%;R26, R27;470k;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;2;
+Widerstand 1/4 W, 5%;RV1, RV2;22k;SLW-Footprints:R-Trim;2;
+Mikrotaster, Schaftlänge >= 11mm;SW1-SW5;;SLW-Footprints:SW_PUSH_6mm_H5mm;5;
+Kappen für Taster (1 x blau, 4 x gelb);;;;;
+"ELEGOO Display 3.5"" Zoll TFT LCD";;480x320;;;
+Pinleiste 2x13 (Display);U1;;SLW-Footprints:3.5_RPi_TFT;1;
+Mikropozessor-Modul;U2;ESP32-DevKit-C;SLW-Footprints:ESP32-DevKit-C;1;
+Echzteituhr-Modul;U3;DS3231_Module;SLW-Footprints:DS3231-Module;1;
+Buchsenleiste, 6-pol (DS3231);;;;;
+OpAmp, 2fach;U4, U6;MCP602;Package_DIP:DIP-8_W7.62mm_Socket;2;
+IC-Sockel, 2x4 pin (OpAmp);;;;;
+Referenz-Spannung;U5;TL431;Package_TO_SOT_THT:TO-92_HandSolder;1;
+DC/DC Wandler, 9..12V -> 5V;U7;TSR_1-24150;Converter_DCDC:Converter_DCDC_TRACO_TSR-1_THT;1;TSR 0.5-2450
+Sensor-Modul;U8;BMP280;SLW-Footprints:BMP280-Module;1;
+Buchsenleiste, 6-pol (BMP280);;;;2;
+;;;;;
+Antennen-Modul;;;;;
+AM-Receiver;U1, U2;TA7642;Package_TO_SOT_THT:TO-92_HandSolder;2;
+Keramik-Kondensator;C1, C3, C4, C7-C13, C16;100n;Capacitor_THT:C_Disc_D3.0mm_W2.0mm_P2.50mm;8;X7R-2,5 100N KOM
+Folien-Kondensator;C5, C7;1n;Capacitor_THT:C_Disc_D6.0mm_W2.0mm_P5.00mm;2;FKP2-63 1,0N
+Ferritstab mit Spule;L1, L2;2,7mH;Length  100mm, Diameter 10mm;2;
+Elko, 16V;C2, C14, C15;10uF, 16V;Capacitor_THT:CP_Radial_D5.0mm_P2.50mm;2;
+Widerstand 1/4 W, 5%;R1, R4;1k;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;2;
+Widerstand 1/4 W, 5%;R2, R3;100k;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;2;
+Wannenstecker, 2x3, gerade;J1;Anntenna;SLW-Footprints:Pfosten-Buchse_02x03;1;WSL 6G
+;;;;;
+Verbindungskabel ;;;;;
+Pfostenbuchse 6-polig;;;Mit Zugentlastung;2;PFL 6
+Flachbandkabel 6-polig;;;max 100cm;1;
