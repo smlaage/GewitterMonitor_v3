@@ -226,10 +226,13 @@ void Menu::process_key(uint8_t key) {
     case 16:      // center key
       switch (item) {
         case 0:
+          rtc.set_hour_minute(hour, minute);
+          show_confirmation();
           break;
 
         case 1:
           rtc.set_hour_minute(hour, minute);
+          show_confirmation();
           break;
 
         case 2:
