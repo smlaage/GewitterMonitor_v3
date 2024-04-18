@@ -38,7 +38,7 @@ Buchsenleiste, 6-pol (DS3231);;;;;
 OpAmp, 2fach;U4, U6;MCP602;Package_DIP:DIP-8_W7.62mm_Socket;2;
 IC-Sockel, 2x4 pin (OpAmp);;;;;
 Referenz-Spannung;U5;TL431;Package_TO_SOT_THT:TO-92_HandSolder;1;
-DC/DC Wandler, 9..12V -> 5V;U7;TSR_1-24150;Converter_DCDC:Converter_DCDC_TRACO_TSR-1_THT;1;TSR 0.5-2450
+DC/DC Wandler, 9..12V -> 5V;U7;TSR_1-2450;Converter_DCDC:Converter_DCDC_TRACO_TSR-1_THT;1;TSR 0.5-2450
 Sensor-Modul;U8;BMP280;SLW-Footprints:BMP280-Module;1;
 Buchsenleiste, 6-pol (BMP280);;;;2;
 ;;;;;
