@@ -19,7 +19,6 @@ void Display::init(void) {
   delay(1000);
 }
 
-
 //--------------------------------------------------------------------------------
 void Display::draw_menu_item(int i, char label[], char value_str[]) {
   int y_pos = menu_y + menu_y_pos + i * menu_y_delta;

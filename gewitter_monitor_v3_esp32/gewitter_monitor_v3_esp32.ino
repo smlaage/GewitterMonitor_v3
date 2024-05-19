@@ -122,6 +122,7 @@ volatile uint8_t second = 0;
 volatile uint16_t data_pnt = 0;
 // Other
 bool bmp_found = false;
+uint32_t hpa;
 bool bt_center_status = LOW;
 int y_pos = 0;
 int left_flash_cnt = 0, right_flash_cnt = 0;
@@ -137,6 +138,7 @@ void IRAM_ATTR timer_1_isr(void) {
     job_flags |= (1 << JF_UPDATE_MINUTE);
     data_left[data_pnt] = left_sum;
     data_right[data_pnt] = right_sum;
+    data_hpa[data_pnt] = hpa;
     data_pnt += 1;
     if (data_pnt >= DATA_MAX) data_pnt = 0;
     portENTER_CRITICAL(&timer_3_Mux);
@@ -321,7 +323,6 @@ void setup() {
 void loop() {
   bool bt_center;
   char buf[24];
-  uint32_t hpa;
   uint8_t key;
 
   if (left_flash_cnt > 0) {
@@ -341,14 +342,13 @@ void loop() {
     job_flags &= ~(1 << JF_UPDATE_SECOND);
     portEXIT_CRITICAL(&timer_1_Mux); 
     if (!menu.is_active()) tft.refresh_second();
-    if (second == 30) {
-      if (bmp_found) {
+    if (bmp_found) {
+      if (second == 30) {
         #if DEMO_MODE
           hpa = 101114;
         #else
           hpa = (uint32_t) (bmp.readPressure() + gl_hpa_offset);
-        #endif
-        data_hpa[data_pnt] = hpa;
+        #endif        
         if (!menu.is_active()) tft.refresh_hpa(hpa);
       }
     }
