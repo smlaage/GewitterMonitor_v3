@@ -1,3 +1,8 @@
+/*
+Gewitter Monitor V3.2
+Module "keyboard"
+*/
+
 #include "keyboard.h"
 
 volatile char keyboard_buffer[KEYBOARD_BUFFER_SIZE];

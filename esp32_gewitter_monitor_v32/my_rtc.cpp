@@ -1,3 +1,8 @@
+/*
+Gewitter Monitor V3.2
+Module "my_rtc"
+*/
+
 #include "my_rtc.h"
 #include "display.h"
 

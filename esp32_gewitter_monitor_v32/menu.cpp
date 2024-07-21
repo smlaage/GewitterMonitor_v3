@@ -1,3 +1,8 @@
+/*
+Gewitter Monitor V3.2
+Module "menu"
+*/
+
 #include "menu.h"
 
 //--------------------------------------------------------------------------------
@@ -61,6 +66,7 @@ void Menu::init(void) {
 
 //--------------------------------------------------------------------------------
 void Menu::process_key(uint8_t key) {
+  extern Preferences prefs;
   extern Display tft;
   extern MyRTC rtc;
   extern Adafruit_BMP280 bmp;
@@ -237,28 +243,28 @@ void Menu::process_key(uint8_t key) {
 
         case 2:
           gl_detection_threshold = detection_threshold;
-          NVS.setInt(nvs_detection_threshold, gl_detection_threshold);
+          prefs.putInt(nvs_detection_threshold, gl_detection_threshold);
           Serial.print("Detection threshold: "); Serial.println(detection_threshold);
           show_confirmation();
           break;
 
         case 3:
           gl_flash_duration = flash_duration;
-          NVS.setInt(nvs_flash_duration, gl_flash_duration);
+          prefs.putInt(nvs_flash_duration, gl_flash_duration);
           Serial.print("Flash duration: "); Serial.println(flash_duration);
           show_confirmation();
           break;
 
         case 4:
           gl_display_timeout = display_timeout;
-          NVS.setInt(nvs_display_timeout, gl_display_timeout);
+          prefs.putInt(nvs_display_timeout, gl_display_timeout);
           Serial.print("Display timeout: "); Serial.println(display_timeout);
           show_confirmation();
           break;
 
         case 5:
           gl_alarm_level = alarm_level;
-          NVS.setInt(nvs_alarm_level, gl_alarm_level);
+          prefs.putInt(nvs_alarm_level, gl_alarm_level);
           Serial.print("Alarm level: "); Serial.println(alarm_level);
           calc_alarm_levels();
           show_confirmation();
@@ -266,14 +272,14 @@ void Menu::process_key(uint8_t key) {
 
         case 6:
           gl_alarm_window = alarm_window;
-          NVS.setInt(nvs_alarm_window, gl_alarm_window);
+          prefs.putInt(nvs_alarm_window, gl_alarm_window);
           Serial.print("Alarm window: "); Serial.println(alarm_window);
           show_confirmation();
           break;
 
         case 7:
           gl_scale_min = scale_min;
-          NVS.setInt(nvs_scale_min, gl_scale_min);
+          prefs.putInt(nvs_scale_min, gl_scale_min);
           Serial.print("Scale min: "); Serial.println(scale_min);
           show_confirmation();
           break;
@@ -281,7 +287,7 @@ void Menu::process_key(uint8_t key) {
         case 8:
           if (bmp_found) {
             gl_hpa_offset = hpa * 100 - bmp.readPressure();
-            NVS.setInt(nvs_hpa_offset, gl_hpa_offset);
+            prefs.putInt(nvs_hpa_offset, gl_hpa_offset);
             show_confirmation();
           }
           break;

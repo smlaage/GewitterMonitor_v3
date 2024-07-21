@@ -67,6 +67,7 @@ class Display {
     int toogle_zoom_mode(void);
     void enter_voltage(void);
     void update_voltage(char v_green[], char v_red[]); 
+    void show_network_status(int status);
 };
 
 #endif

@@ -3,9 +3,11 @@
 
 #include <Arduino.h>
 #include <Wire.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP280.h>
-#include <ArduinoNvs.h>
+#include <Preferences.h>
 
 #define PIN_LCD_PWR          25  
 #define PIN_BT_RIGHT         16
@@ -46,18 +48,27 @@
 #define DEMO_MODE                       0
 
 // title message
-const char title_msg1[] = "Gewitter Monitor v3";
-const char title_msg2[] = "SLW 23-09-14";
+const char title_msg1[] = "Gewitter Monitor v3.2";
+const char title_msg2[] = "SLW 24-07-08";
 const char title_msg3[] = "laagewitt.de";
 
 // global parameter names
-const char nvs_flash_on[] = "flash_status";
-const char nvs_hpa_offset[] = "hpa_offset";
-const char nvs_detection_threshold[] = "detection_th";
-const char nvs_flash_duration[] = "flash_duration";
-const char nvs_alarm_level[] = "alarm_level";
-const char nvs_alarm_window[] = "alarm_window";
-const char nvs_display_timeout[] = "disp_timeout";
-const char nvs_scale_min[] = "scale_min";
+const char nvs_alarm_level[] = "sa";
+const char nvs_hpa_offset[] = "sh";
+const char nvs_scale_min[] = "sm";
+const char nvs_display_timeout[] = "so";
+const char nvs_detection_threshold[] = "sr";
+const char nvs_flash_on[] = "ss";
+const char nvs_flash_duration[] = "su";
+const char nvs_alarm_window[] = "sw";
+
+const char nvs_mqtt_client[] = "ne";
+const char nvs_mqtt_host_ip[] = "ni";
+const char nvs_mqtt_port[] = "no";
+const char nvs_network_password[] = "np";
+const char nvs_network_ssid[] = "ns";
+const char nvs_mqtt_topic[] = "nt";
+const char nvs_mqtt_user[] = "nu";
+const char nvs_mqtt_password[] = "nx";
 
 #endif

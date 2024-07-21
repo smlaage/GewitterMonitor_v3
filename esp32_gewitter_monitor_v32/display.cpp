@@ -1,4 +1,10 @@
+/*
+Gewitter Monitor V3.2
+Module "display"
+*/
+
 #include "display.h"
+#include "command_line.h"
 
 
 //--------------------------------------------------------------------------------
@@ -168,6 +174,7 @@ void Display::stop(void) {
 
 //------------------------------------------------------------------------------------------
 void Display::refresh_graph(void) {
+  extern CommandLine cl;
   extern int gl_scale_min;
   int scale_min;
   extern uint16_t left_cnt, right_cnt;
@@ -339,9 +346,9 @@ void Display::refresh_graph(void) {
   etft.setTextDatum(TR_DATUM);
   if (trend_minus) etft.setTextColor(axis_color, TFT_BLACK);
   else etft.setTextColor(alarm_color, TFT_BLACK);
-  etft.drawString(buf, x_max, y_trend, 1);
+  etft.drawString(buf, x_max, y_trend, 1); 
 
-  
+  show_network_status(cl.get_network_status());
 }
 
 //--------------------------------------------------------------------------------
@@ -586,3 +593,16 @@ void Display::show_message(char msg[]) {
   delay(2000);
   refresh_graph();
 }
+
+//---------------------------------------------------------------------------------
+void Display::show_network_status(int status) {
+  const int radius = 5, x = radius, y = radius;
+
+  // status: 0 -> no connection, 1 -> WiFi okay, 2 -> MQTT okay, -1 -> network disabled
+
+  if (status < 0) return;
+  if (status == 0) etft.fillCircle(x, y, radius, TFT_RED); 
+  else if (status == 1) etft.fillCircle(x, y, radius, TFT_ORANGE);
+  else etft.fillCircle(x, y, radius, TFT_GREEN);
+}
+

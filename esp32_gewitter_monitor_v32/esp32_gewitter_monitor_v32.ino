@@ -1,8 +1,11 @@
 /*
-Gewitter Monitor V3
+Gewitter Monitor V3.2
 Target device: ESP32
 
-SLW 2023-09-27
+Based on Espressif Arduino 3.0.2
+https://github.com/espressif/arduino-esp32
+
+SLW 24-07-08
 */
 
 #include "gewitter_monitor.h"
@@ -12,9 +15,6 @@ SLW 2023-09-27
 #include "keyboard.h"
 #include "menu.h"
 #include "util.h"
-
-// Timer interrupts
-#define TIMER0_INTERVAL_MS  1
 
 // Global parameters
 int gl_hpa_offset;
@@ -30,19 +30,19 @@ int gl_alarm_window;
 int gl_display_timeout;
 int gl_read_flash_data = true;
 int gl_scale_min;
+String gl_network_ssid, gl_network_password, gl_mqtt_host_ip, gl_mqtt_client, 
+       gl_mqtt_user, gl_mqtt_password, gl_mqtt_topic;
+char gl_mqtt_host_ip_char[32], gl_mqtt_client_char[32], gl_mqtt_user_char[32], gl_mqtt_password_char[32], gl_mqtt_topic_char[32];
+int gl_mqtt_port;
 
-// global variables
+// Hardware time
 hw_timer_t *timer_1 = NULL;   // triggers every second, updates x-axis and time display
 portMUX_TYPE timer_1_Mux = portMUX_INITIALIZER_UNLOCKED;
 hw_timer_t *timer_3 = NULL;   // triggers with 10 kHz, captures ADC values
 portMUX_TYPE timer_3_Mux = portMUX_INITIALIZER_UNLOCKED;
 hw_timer_t *timer_2 = NULL;   // keyboard timer
 portMUX_TYPE timer_2_Mux = portMUX_INITIALIZER_UNLOCKED;
-Display tft;
-Menu menu;
-Adafruit_BMP280 bmp;
-MyRTC rtc;
-CommandLine cl;
+
 // Variables managed by timer interrupt routines
 volatile uint16_t left_max = 0, right_max = 0;
 #if DEMO_MODE
@@ -52,6 +52,7 @@ volatile uint16_t left_max = 0, right_max = 0;
   volatile uint16_t left_cnt = 0, right_cnt = 0;
   volatile uint32_t left_sum = 0, right_sum = 0;
 #endif
+volatile uint32_t last_left_sum = 0, last_right_sum = 0;
 volatile bool left_channel = true;
 volatile uint8_t job_flags = 0b00000000;
 volatile uint8_t second = 0;
@@ -120,15 +121,27 @@ volatile uint8_t second = 0;
   volatile uint32_t data_left[DATA_MAX], data_right[DATA_MAX], data_hpa[DATA_MAX];
 #endif
 volatile uint16_t data_pnt = 0;
+
+// global variables
+WiFiClient wificlient;
+PubSubClient client(wificlient);
+int network_reconnect = 0;
+Preferences prefs;
+Display tft;
+Menu menu;
+Adafruit_BMP280 bmp;
+MyRTC rtc;
+CommandLine cl;
+
 // Other
 bool bmp_found = false;
 uint32_t hpa;
 bool bt_center_status = LOW;
-int y_pos = 0;
 int left_flash_cnt = 0, right_flash_cnt = 0;
 bool refresh_okay = false;
 
-// timer service handler 1 --------------------------------------------------------------------------------------
+// Timer 1 service handler --------------------------------------------------------------------------------------
+// Refreshes data and display once per second
 void IRAM_ATTR timer_1_isr(void) {
   portENTER_CRITICAL_ISR(&timer_1_Mux);
   job_flags |= (1 << JF_UPDATE_SECOND);
@@ -146,6 +159,8 @@ void IRAM_ATTR timer_1_isr(void) {
   left_cnt = 45; right_cnt = 71;
   left_sum = 3027; right_sum = 4652;
 #else    
+    last_left_sum = left_sum;
+    last_right_sum = right_sum;
     left_cnt = 0;
     right_cnt = 0;
     left_sum = 0;
@@ -156,7 +171,8 @@ void IRAM_ATTR timer_1_isr(void) {
   portEXIT_CRITICAL_ISR(&timer_1_Mux);
 }
 
-// timer service handler 3 --------------------------------------------------------------------------------------
+// Timer 3 service handler --------------------------------------------------------------------------------------
+// Checks the adc channels and evaluates peaks 
 void IRAM_ATTR timer_3_isr(void) {
   static uint16_t left_old = 0, right_old = 0;
   static bool left_detect = false, right_detect = false;
@@ -234,20 +250,37 @@ void setup() {
   Serial.println("Gewitter Monitor v3");
   Serial.println("SLW 2023-08 https://laagewitt.de");
 
-  NVS.begin();
-  gl_hpa_offset = NVS.getInt(nvs_hpa_offset);
-  gl_detection_threshold = NVS.getInt(nvs_detection_threshold);
-  gl_flash_duration = NVS.getInt(nvs_flash_duration);
-  gl_flash_on = NVS.getInt(nvs_flash_on);
-  gl_alarm_level = NVS.getInt(nvs_alarm_level);
+  prefs.begin("GWM", false);
+  gl_hpa_offset = prefs.getInt(nvs_hpa_offset);
+  gl_detection_threshold = prefs.getInt(nvs_detection_threshold);
+  gl_flash_duration = prefs.getInt(nvs_flash_duration);
+  gl_flash_on = prefs.getInt(nvs_flash_on);
+  gl_alarm_level = prefs.getInt(nvs_alarm_level);
   calc_alarm_levels();
-  gl_alarm_window = NVS.getInt(nvs_alarm_window);
-  gl_display_timeout = NVS.getInt(nvs_display_timeout);
-  gl_scale_min = NVS.getInt(nvs_scale_min);
+  gl_alarm_window = prefs.getInt(nvs_alarm_window);
+  gl_display_timeout = prefs.getInt(nvs_display_timeout);
+  gl_scale_min = prefs.getInt(nvs_scale_min);
   if (gl_scale_min < 400) {
     gl_scale_min = DEFAULT_SCALE_MIN;
-    NVS.setInt(nvs_scale_min, gl_scale_min);
+    prefs.putInt(nvs_scale_min, gl_scale_min);
   }
+  // Network
+  gl_network_ssid = prefs.getString(nvs_network_ssid);
+  if (gl_network_ssid.length() < 2) cl.set_network_status(-1);
+  gl_network_password = prefs.getString(nvs_network_password);
+  if (gl_network_password.length() < 2) cl.set_network_status(-1);
+  // MQTT
+  gl_mqtt_host_ip = prefs.getString(nvs_mqtt_host_ip);
+  gl_mqtt_host_ip.toCharArray(gl_mqtt_host_ip_char, 32);
+  gl_mqtt_client = prefs.getString(nvs_mqtt_client);
+  gl_mqtt_client.toCharArray(gl_mqtt_client_char, 32);
+  gl_mqtt_port = prefs.getInt(nvs_mqtt_port);
+  gl_mqtt_user = prefs.getString(nvs_mqtt_user);
+  gl_mqtt_user.toCharArray(gl_mqtt_user_char, 32);
+  gl_mqtt_password = prefs.getString(nvs_mqtt_password);
+  gl_mqtt_password.toCharArray(gl_mqtt_password_char, 32);
+  gl_mqtt_topic = prefs.getString(nvs_mqtt_topic);
+  gl_mqtt_topic.toCharArray(gl_mqtt_topic_char, 32);
 
   Wire.begin();
   Wire.setClock(400000);
@@ -255,8 +288,8 @@ void setup() {
   // Prepare ADC
   analogSetWidth(10);     // set to 10 bit, values 0 ... 1023
   analogReadResolution(10); 
-  adcAttachPin(PIN_ADC_LEFT);
-  adcAttachPin(PIN_ADC_RIGHT);
+  // adcAttachPin(PIN_ADC_LEFT); - removed in Espressif version 3
+  // adcAttachPin(PIN_ADC_RIGHT); - removed in Espressif version 3
 
   // Clear buffer
   #if !DEMO_MODE
@@ -293,36 +326,39 @@ void setup() {
   // Start BMP
   bmp_found = bmp.begin(0x76);
 
-  // Start timer 1
-  // Serial.println("Starting timer interrupts on timer 1");
-  timer_1 = timerBegin(1, 160, true);          // pre-scaler 160 gives 1 tick per 2 usec
-  timerAttachInterrupt(timer_1, &timer_1_isr, true);
-  timerAlarmWrite(timer_1, 500010, true);     // 500000 usec -> 1 event per second
-  timerAlarmEnable(timer_1);
-
-  // Starting timer 3
+  // Starting timer 3 - strike detection
   // Serial.println("Starting timer interrupts on timer 3");
-  timer_3 = timerBegin(3, 80, true);          // pre-scaler 80 gives 1 tick per 1 usec
-  timerAttachInterrupt(timer_3, &timer_3_isr, true);
-  timerAlarmWrite(timer_3, 100, true);     // 100 usec -> 0.1 ms -> 10000 Hz
-  timerAlarmEnable(timer_3);
+  timer_3 = timerBegin(1000000);                // timer running with 1 MHz
+  timerAttachInterrupt(timer_3, &timer_3_isr);
+  timerAlarm(timer_3, 100, true, 0);            // 100 usec -> 0.1 ms -> 10000 Hz
+  delay(5);
+
+  // Start timer 1 - data and display refresh, once per second
+  // Serial.println("Starting timer interrupts on timer 1");
+  // timer_1 = timerBegin(1, 160, true);          // pre-scaler 160 gives 1 tick per 2 usec
+  timer_1 = timerBegin(1000000);                  // timer running with 1 MHz
+  timerAttachInterrupt(timer_1, &timer_1_isr);
+  timerAlarm(timer_1, 1000000, true, 0);          // 500000 usec -> 1 event per second
 
   // Starting timer 2 - keyboard
   // Serial.println("Starting timer interrupts on timer 2");
-  timer_2 = timerBegin(2, 160, true);          // pre-scaler 160 gives 2 tick per 1 usec
-  timerAttachInterrupt(timer_2, &check_keyboard_isr, true);
-  timerAlarmWrite(timer_2, 20000, true);     // 25000 usec -> 20 events per second
-  timerAlarmEnable(timer_2);
+  timer_2 = timerBegin(1000000);                  // time running with 1 HMz
+  timerAttachInterrupt(timer_2, &check_keyboard_isr);
+  timerAlarm(timer_2, 25000, true, 0);            // 25000 usec -> 40 events per second
 
   update_alarm();
-
   tft.restart();
+
+  // Try network connection
+  if (cl.get_network_status() >= 0) {
+    cl.set_network_status(cl.network_connect());
+  }
 }
 
 //---------------------------------------------------------------
 void loop() {
   bool bt_center;
-  char buf[24];
+  char buf[24], buf2[24];
   uint8_t key;
 
   if (left_flash_cnt > 0) {
@@ -359,9 +395,32 @@ void loop() {
     portENTER_CRITICAL(&timer_1_Mux);
     job_flags &= ~(1 << JF_UPDATE_MINUTE);
     portEXIT_CRITICAL(&timer_1_Mux);
+
+    // In case of network trouble, try reconnecting up to 3 times
+    if (((cl.get_network_status() >= 0) && (cl.get_network_status() < 2)) && (network_reconnect > 0)) {
+      cl.network_connect();
+      if (cl.get_network_status() >= 2) {
+        network_reconnect = 0;
+      } else {
+        network_reconnect -= 1;
+        // In case the reconnection failed 3 times, disable the network completely
+        if ((network_reconnect == 0) && (cl.get_network_status() < 2)) 
+          cl.set_network_status(-1);
+      }
+    }
+
     if (refresh_okay) { 
       if (!menu.is_active()) tft.refresh_graph();
       update_alarm();
+      if (cl.get_network_status() >= 2) {
+        if (cl.publish_data(last_left_sum, last_right_sum, hpa) == false) {
+          // if publishig failed, try reconncting right away
+          tft.show_message("Trying to reconnect!");
+          cl.network_connect();
+          // if the reconnection failed, prepare to attempt reconnection in one minute, up to 3 times 
+          if (cl.get_network_status() < 2) network_reconnect = 3; 
+        }
+      }
       refresh_okay = false;
     }
   }
@@ -408,7 +467,7 @@ void loop() {
             tft.show_message("Flash on");
             gl_flash_on = 1;
           }
-          NVS.setInt(nvs_flash_on, gl_flash_on);
+          prefs.putInt(nvs_flash_on, gl_flash_on);
           break;
 
         case 2:   // up button
