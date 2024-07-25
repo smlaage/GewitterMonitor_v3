@@ -30,7 +30,7 @@ class CommandLine {
     int network_connect(void);
     int get_network_status(void);
     void set_network_status(int status);
-    bool publish_data(long left_sum, long right_sum, long hpa);
+    bool publish_data(long left_sum, long right_sum, long hpa, int alarm_level);
 
 };
 

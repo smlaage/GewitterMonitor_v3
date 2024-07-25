@@ -205,7 +205,7 @@ void CommandLine::decode_get_cmd(uint8_t pnt) {
 //---------------------------------------------------------------
 void CommandLine::decode_network_cmd(uint8_t pnt) {
   extern Preferences prefs;
-  extern String gl_network_password, gl_mqtt_host_ip, gl_mqtt_client, gl_mqtt_user, gl_mqtt_password, gl_mqtt_topic;
+  extern String gl_network_password, gl_mqtt_host_ip, gl_host_name, gl_mqtt_user, gl_mqtt_password, gl_mqtt_topic;
   extern int gl_mqtt_port;
   char buf[16];
   int x, l;
@@ -242,14 +242,14 @@ void CommandLine::decode_network_cmd(uint8_t pnt) {
       prefs.putString(nvs_mqtt_topic, gl_mqtt_topic);
       break;
 
-    case 'e':           // set MQTT client
-    case 'E':
+    case 'h':           // set host name
+    case 'H':
       pnt += 2;
       while (buffer[pnt] == ' ') pnt += 1;
       buffer[buffer_pnt] = '\0';
-      gl_mqtt_client = String(buffer + pnt);
-      Serial.print("MQTT client: "); Serial.println(gl_mqtt_topic);  
-      prefs.putString(nvs_mqtt_client, gl_mqtt_client);
+      gl_host_name = String(buffer + pnt);
+      Serial.print("Host name: "); Serial.println(gl_host_name);  
+      prefs.putString(nvs_host_name, gl_host_name);
       break;
 
     case 'i':           // set mqtt host ip
@@ -340,7 +340,7 @@ void CommandLine::print_config(void) {
   extern MyRTC rtc;
   extern int gl_hpa_offset, gl_detection_threshold, gl_flash_duration, gl_flash_on, gl_alarm_level, gl_scale_min,
              gl_alarm_window, gl_display_timeout, gl_mqtt_port;
-  extern String gl_network_ssid, gl_network_password, gl_mqtt_client, gl_mqtt_host_ip, gl_mqtt_user, 
+  extern String gl_network_ssid, gl_network_password, gl_host_name, gl_mqtt_host_ip, gl_mqtt_user, 
                 gl_mqtt_password, gl_mqtt_topic;
   extern int gl_alarm_1, gl_alarm_2, gl_alarm_3, gl_alarm_4;
   char buf[16];
@@ -368,16 +368,15 @@ void CommandLine::print_config(void) {
   Serial.print("  network ssid: "); 
   if (gl_network_ssid.length() > 0) Serial.println(gl_network_ssid); else Serial.println("<none>");
   Serial.print("  network password: ");
-  if (gl_network_password.length() > 0) Serial.println(gl_network_password); else Serial.println("<none>");
+  if (gl_network_password.length() > 0) Serial.println("<provided>"); else Serial.println("<none>");
+  Serial.print("  host name: "); Serial.println(gl_host_name);
   Serial.print("  MQTT host IP: ");
   if (gl_mqtt_host_ip.length() > 0) Serial.println(gl_mqtt_host_ip); else Serial.println("<none>");
-  Serial.print("  MQTT client: ");
-  if (gl_mqtt_client.length() > 0) Serial.println(gl_mqtt_client); else Serial.println("<none>");
   Serial.print("  MQTT port: "); Serial.println(gl_mqtt_port);
   Serial.print("  MQTT user: ");
   if (gl_mqtt_user.length() > 0) Serial.println(gl_mqtt_user); else Serial.println("<none>");
   Serial.print("  MQTT password: ");
-  if (gl_mqtt_password.length() > 0) Serial.println(gl_mqtt_password); else Serial.println("<none>");
+  if (gl_mqtt_password.length() > 0) Serial.println("<provided>"); else Serial.println("<none>");
   Serial.print("  MQTT topic: ");
   if (gl_mqtt_topic.length() > 0) Serial.println(gl_mqtt_topic); else Serial.println("<none>");
 
@@ -512,7 +511,7 @@ int CommandLine::network_scan(void) {
 int CommandLine::network_connect(void) {
   extern PubSubClient client;
   extern String gl_network_ssid, gl_network_password, gl_mqtt_host_ip;
-  extern char gl_mqtt_client_char[], gl_mqtt_user_char[], gl_mqtt_password_char[], gl_mqtt_host_ip_char[];
+  extern char gl_host_name_char[], gl_mqtt_user_char[], gl_mqtt_password_char[], gl_mqtt_host_ip_char[];
   extern int gl_mqtt_port;
   extern Display tft;
 
@@ -536,10 +535,10 @@ int CommandLine::network_connect(void) {
 
   // step 1: connecting to WLAN
   if (network_status >= 0) {
-    Serial.print("Connecting to ");
     Serial.print(gl_network_ssid);
     Serial.print(' ');
     WiFi.mode(WIFI_STA);
+    WiFi.setHostname(gl_host_name_char);
     WiFi.begin(gl_network_ssid, gl_network_password);
     for (int i = 0; i < 20; ++i) {
       if (WiFi.status() == WL_CONNECTED) break;
@@ -548,7 +547,7 @@ int CommandLine::network_connect(void) {
     }
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("\n - connection failed!");
-      tft.show_message("Network connection failed!");
+      tft.show_message("Network failed!");
       network_status = 0;
     } else {
       Serial.print("\n - connected to '");
@@ -570,11 +569,12 @@ int CommandLine::network_connect(void) {
     if ((gl_mqtt_host_ip.length() > 5) && (gl_mqtt_port > 0)) {
       Serial.print("MQTT client at "); Serial.print(gl_mqtt_host_ip_char); Serial.print("/"); Serial.println(gl_mqtt_port);
       client.setServer(gl_mqtt_host_ip_char, gl_mqtt_port);
-      if (client.connect(gl_mqtt_client_char, gl_mqtt_user_char, gl_mqtt_password_char)) {
+      if (client.connect(gl_host_name_char, gl_mqtt_user_char, gl_mqtt_password_char)) {
         Serial.println("Connected to MQTT broker");
         tft.show_message("MQTT connected");
         network_status = 2;
       } else {
+        tft.show_message("MQTT failed!");
         Serial.println("MQTT connection failed!");
         network_status = 1;
       }
@@ -591,9 +591,9 @@ int CommandLine::network_connect(void) {
 // Tries publishing the data to the MQTT broker
 // Updates the network status and refreshes the status on the display
 // Returns success (true or false)
-bool CommandLine::publish_data(long left_sum, long right_sum, long hpa) {
+bool CommandLine::publish_data(long left_sum, long right_sum, long hpa, int alarm_level) {
   extern PubSubClient client;
-  extern char gl_mqtt_client_char[], gl_mqtt_user_char[], gl_mqtt_password_char[], gl_mqtt_topic_char[];
+  extern char gl_host_name_char[], gl_mqtt_user_char[], gl_mqtt_password_char[], gl_mqtt_topic_char[];
   extern Display tft;
   char buf1[32], buf2[16];
 
@@ -601,7 +601,7 @@ bool CommandLine::publish_data(long left_sum, long right_sum, long hpa) {
   if (network_status < 2) return false;
 
   // Try connecting to the MQTT broker
-  if (!client.connect(gl_mqtt_client_char, gl_mqtt_user_char, gl_mqtt_password_char)) {
+  if (!client.connect(gl_host_name_char, gl_mqtt_user_char, gl_mqtt_password_char)) {
     network_status = 1;
     tft.show_network_status(network_status);
     return false;
@@ -610,11 +610,14 @@ bool CommandLine::publish_data(long left_sum, long right_sum, long hpa) {
   // construct the MQTT message
   delay(5);
   ltoa(left_sum, buf1, 10);
-  ltoa(right_sum, buf2, 10);
   strcat(buf1, ",");
+  ltoa(right_sum, buf2, 10);
   strcat(buf1, buf2);
   strcat(buf1, ",");
   itoa(hpa, buf2, 10);
+  strcat(buf1, buf2);
+  strcat(buf1, ",");
+  itoa(alarm_level, buf2, 10);
   strcat(buf1, buf2);
 
   // send the message
@@ -666,7 +669,7 @@ void CommandLine::show_help(void) {
   Serial.println(" - sw <int><Enter> - set alarm window (2 ... 60 minutes)");
   Serial.println("Network Commands");
   Serial.println(" - nc <Enter> - connect to network (with given SSID and password)");
-  Serial.println(" - ne <client><Enter> - set the MQTT client name");
+  Serial.println(" - nh <host><Enter> - set WLAN host name");
   Serial.println(" - ni <IP><Enter> - set MQTT host IP");
   Serial.println(" - no <int><Enter> - set MQTT port number");
   Serial.println(" - np <password><Enter> - set network password");

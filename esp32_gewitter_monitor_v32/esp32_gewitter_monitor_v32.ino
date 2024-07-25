@@ -5,7 +5,7 @@ Target device: ESP32
 Based on Espressif Arduino 3.0.2
 https://github.com/espressif/arduino-esp32
 
-SLW 24-07-08
+SLW 2024-07-23
 */
 
 #include "gewitter_monitor.h"
@@ -30,9 +30,9 @@ int gl_alarm_window;
 int gl_display_timeout;
 int gl_read_flash_data = true;
 int gl_scale_min;
-String gl_network_ssid, gl_network_password, gl_mqtt_host_ip, gl_mqtt_client, 
+String gl_network_ssid, gl_network_password, gl_host_name, gl_mqtt_host_ip, 
        gl_mqtt_user, gl_mqtt_password, gl_mqtt_topic;
-char gl_mqtt_host_ip_char[32], gl_mqtt_client_char[32], gl_mqtt_user_char[32], gl_mqtt_password_char[32], gl_mqtt_topic_char[32];
+char gl_mqtt_host_ip_char[32], gl_host_name_char[32], gl_mqtt_user_char[32], gl_mqtt_password_char[32], gl_mqtt_topic_char[32];
 int gl_mqtt_port;
 
 // Hardware time
@@ -139,6 +139,7 @@ uint32_t hpa;
 bool bt_center_status = LOW;
 int left_flash_cnt = 0, right_flash_cnt = 0;
 bool refresh_okay = false;
+int alarm_level = 0;
 
 // Timer 1 service handler --------------------------------------------------------------------------------------
 // Refreshes data and display once per second
@@ -269,11 +270,15 @@ void setup() {
   if (gl_network_ssid.length() < 2) cl.set_network_status(-1);
   gl_network_password = prefs.getString(nvs_network_password);
   if (gl_network_password.length() < 2) cl.set_network_status(-1);
+  gl_host_name = prefs.getString(nvs_host_name);
+  if (gl_host_name.length() == 0) {
+    gl_host_name = "ESP32-GWM";
+    prefs.putString(nvs_host_name, gl_host_name);
+  }
+  gl_host_name.toCharArray(gl_host_name_char, 32);
   // MQTT
   gl_mqtt_host_ip = prefs.getString(nvs_mqtt_host_ip);
   gl_mqtt_host_ip.toCharArray(gl_mqtt_host_ip_char, 32);
-  gl_mqtt_client = prefs.getString(nvs_mqtt_client);
-  gl_mqtt_client.toCharArray(gl_mqtt_client_char, 32);
   gl_mqtt_port = prefs.getInt(nvs_mqtt_port);
   gl_mqtt_user = prefs.getString(nvs_mqtt_user);
   gl_mqtt_user.toCharArray(gl_mqtt_user_char, 32);
@@ -405,15 +410,15 @@ void loop() {
         network_reconnect -= 1;
         // In case the reconnection failed 3 times, disable the network completely
         if ((network_reconnect == 0) && (cl.get_network_status() < 2)) 
-          cl.set_network_status(-1);
+          cl.set_network_status(0);
       }
     }
 
     if (refresh_okay) { 
       if (!menu.is_active()) tft.refresh_graph();
-      update_alarm();
+      alarm_level = update_alarm();
       if (cl.get_network_status() >= 2) {
-        if (cl.publish_data(last_left_sum, last_right_sum, hpa) == false) {
+        if (cl.publish_data(last_left_sum, last_right_sum, hpa, alarm_level) == false) {
           // if publishig failed, try reconncting right away
           tft.show_message("Trying to reconnect!");
           cl.network_connect();

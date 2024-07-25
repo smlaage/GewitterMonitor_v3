@@ -161,12 +161,13 @@ void itoaf(int32_t value, char *s, uint8_t digits, const uint8_t dec_point, bool
 
 
 //---------------------------------------------------------------------
-void update_alarm(void) {
+int update_alarm(void) {
   extern uint32_t data_left[], data_right[];
   extern uint16_t data_pnt;
   extern int gl_alarm_window;
   uint8_t pnt;
   uint32_t min_sum;
+  int alarm_level;
 
   if (gl_alarm_window > 0) {
     pnt = data_pnt;
@@ -179,11 +180,12 @@ void update_alarm(void) {
       if (pnt == 0) pnt = DATA_MAX - 1;
       else pnt -= 1;
     }
-    set_alarm_leds(min_sum / gl_alarm_window);
+    alarm_level = set_alarm_leds(min_sum / gl_alarm_window);
    
   } else {
-    set_alarm_leds(0);
+    alarm_level = set_alarm_leds(0);
   }
+  return alarm_level;
 }
 
 
@@ -199,9 +201,10 @@ void calc_alarm_levels(void) {
 }
 
 //---------------------------------------------------------------------
-void set_alarm_leds(uint32_t data_mean) {
+int set_alarm_leds(uint32_t data_mean) {
   extern uint32_t gl_alarm_level, gl_alarm_1, gl_alarm_2, gl_alarm_3, gl_alarm_4;
   extern Display tft;
+  int alarm_level;
 
   // Serial.print("data_mean: "); Serial.println(data_mean);
 
@@ -214,27 +217,32 @@ void set_alarm_leds(uint32_t data_mean) {
     digitalWrite(PIN_LED_RED, HIGH);
     digitalWrite(PIN_LED_YELLOW, LOW);
     digitalWrite(PIN_LED_GREEN, LOW);
-    return;
-  }
-  if (data_mean > gl_alarm_4) {
+    alarm_level = 5;
+  } else if (data_mean > gl_alarm_4) {
     digitalWrite(PIN_LED_RED, HIGH);
     digitalWrite(PIN_LED_YELLOW, HIGH);
     digitalWrite(PIN_LED_GREEN, LOW);
-    return;
-  }
-  if (data_mean > gl_alarm_3) {
+    alarm_level = 4;
+  } else if (data_mean > gl_alarm_3) {
     digitalWrite(PIN_LED_RED, LOW);
     digitalWrite(PIN_LED_YELLOW, HIGH);
     digitalWrite(PIN_LED_GREEN, LOW);
-    return;
-  }
-  if (data_mean > gl_alarm_2) {
+    alarm_level = 3;
+  } else if (data_mean > gl_alarm_2) {
     digitalWrite(PIN_LED_RED, LOW);
     digitalWrite(PIN_LED_YELLOW, HIGH);
     digitalWrite(PIN_LED_GREEN, HIGH);
-    return;
+    alarm_level = 2;
+  } else if (data_mean > gl_alarm_1) {
+    digitalWrite(PIN_LED_RED, LOW);
+    digitalWrite(PIN_LED_YELLOW, LOW);
+    digitalWrite(PIN_LED_GREEN, HIGH);
+    alarm_level = 1;
+  } else {
+    digitalWrite(PIN_LED_RED, LOW);
+    digitalWrite(PIN_LED_YELLOW, LOW);
+    digitalWrite(PIN_LED_GREEN, HIGH);
+    alarm_level = 0;
   }
-  digitalWrite(PIN_LED_RED, LOW);
-  digitalWrite(PIN_LED_YELLOW, LOW);
-  digitalWrite(PIN_LED_GREEN, HIGH);
+  return alarm_level;
 }

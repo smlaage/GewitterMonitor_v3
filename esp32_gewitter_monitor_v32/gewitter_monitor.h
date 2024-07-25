@@ -49,7 +49,7 @@
 
 // title message
 const char title_msg1[] = "Gewitter Monitor v3.2";
-const char title_msg2[] = "SLW 24-07-08";
+const char title_msg2[] = "SLW 2024-07-23";
 const char title_msg3[] = "laagewitt.de";
 
 // global parameter names
@@ -62,7 +62,7 @@ const char nvs_flash_on[] = "ss";
 const char nvs_flash_duration[] = "su";
 const char nvs_alarm_window[] = "sw";
 
-const char nvs_mqtt_client[] = "ne";
+const char nvs_host_name[] = "nh";
 const char nvs_mqtt_host_ip[] = "ni";
 const char nvs_mqtt_port[] = "no";
 const char nvs_network_password[] = "np";
