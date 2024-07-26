@@ -2,7 +2,6 @@
 #define __COMMAND_LINE__
 
 #include <Arduino.h>
-#include <ArduinoNvs.h>
 #include "gewitter_monitor.h"
 #include "my_rtc.h"
 #include "util.h"
