@@ -1,0 +1,14 @@
+Arduino Dependencies - status: 26-07-2024
+
+Board manager: 
+- esp32 (Espressif), version 3.0.2
+
+Libraries:
+- PubSubClient (N. O'Leary), version 2.9
+- Adafruit Unified Sensor (Adafruit), version 1.1.14
+- Adafruit BMP280 (Adafruit), version 2.6.8
+- TFT_eSPI (Bodmer), version 2.5.43 (*)
+- DS3231 (A. Wickert), version 1.1.2
+
+(*) File "User_Setup.h" contained in folder libraries/TFT-eSPI needs to be edited as described on laagewitt.de
+
