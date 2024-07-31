@@ -11,7 +11,7 @@ mdb_host = "127.0.0.1"
 mdb_port = 3306
 mdb_db = "gwm"
 mdb_user = "gwm_client"
-mdb_password = "donald12"
+mdb_password = "<mariadb password>"
 
 app = Flask(__name__)
 IMG_FOLDER = ("images")
