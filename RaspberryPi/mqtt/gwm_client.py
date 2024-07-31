@@ -11,13 +11,13 @@ mqtt_topic = "gwm/strikes"
 mqtt_host = "127.0.0.1"
 mqtt_port = 1883
 mqtt_user = "gwmv32"
-mqtt_password = "asjh-7Hag"
+mqtt_password = "<mqtt_password>"
 
 mdb_host = "127.0.0.1"
 mdb_port = 3306
 mdb_db = "gwm"
 mdb_user = "gwm_client"
-mdb_password = "donald12"
+mdb_password = "<mariadb_password>"
 
 logging = True
 root_dir = os.path.join('/home', 'stela', 'gwm')
