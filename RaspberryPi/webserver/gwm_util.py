@@ -40,7 +40,7 @@ mdb_host = "127.0.0.1"
 mdb_port = 3306
 mdb_db = "gwm"
 mdb_user = "gwm_client"
-mdb_password = "<mariadb_password"
+mdb_password = "<mariadb_password>"
 
 # Image folder
 root_dir = os.path.join('/home', 'stela', 'gwm')
