@@ -13,7 +13,8 @@ void CommandLine::decode_set_cmd(uint8_t pnt) {
   extern Adafruit_BMP280 bmp;
   extern int gl_hpa_offset, gl_detection_threshold, gl_flash_duration, gl_flash_on, 
              gl_alarm_window, gl_display_timeout, gl_alarm_level, gl_scale_min;
-  extern String gl_network_ssid, gl_network_password;
+  extern String gl_network_ssid, gl_network_password, gl_mqtt_host_ip, gl_mqtt_user, 
+                gl_mqtt_password, gl_mqtt_topic;
   uint8_t year=0, month=0, day=0, hour=0, minute=0;
   bool success = true;
   int x;
@@ -62,6 +63,14 @@ void CommandLine::decode_set_cmd(uint8_t pnt) {
       prefs.putString(nvs_network_ssid, gl_network_ssid);
       gl_network_password = "";
       prefs.putString(nvs_network_password, gl_network_password);
+      gl_mqtt_user = "";
+      prefs.putString(nvs_mqtt_user, gl_mqtt_user);
+      gl_mqtt_host_ip = "";
+      prefs.putString(nvs_mqtt_host_ip, gl_mqtt_host_ip);
+      gl_mqtt_password = "";
+      prefs.putString(nvs_mqtt_password, gl_mqtt_password);
+      gl_mqtt_topic = "";
+      prefs.putString(nvs_mqtt_topic, gl_mqtt_topic);
       tft.start();
       print_config();
       break;
@@ -532,6 +541,9 @@ int CommandLine::network_connect(void) {
     Serial.println("\n - password missing!");
     network_status = -1;
   }
+
+  // Switch display on (if ist is not running already)
+  tft.start();
 
   // step 1: connecting to WLAN
   if (network_status >= 0) {
