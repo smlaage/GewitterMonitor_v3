@@ -2,6 +2,18 @@
     SLW 2024-07-30
 """
 
+# Maria DB connection
+mdb_host = "127.0.0.1"
+mdb_port = 3306
+mdb_db = "gwm"
+mdb_user = "gwm_client"
+mdb_password = "<mariadb_password>"
+
+# Image folder
+root_dir = os.path.join('/home', 'stela', 'gwm')
+img_folder = os.path.join(root_dir, "webserver", "static", "images") 
+matplotlib.use('Agg')
+
 import mariadb
 import matplotlib
 import matplotlib.pyplot as plt
@@ -34,18 +46,6 @@ alarm_colors = {
 
 SIZE_DESKTOP_X, SIZE_DESKTOP_Y = 12.0, 5.5
 SIZE_MOBILE_X, SIZE_MOBILE_Y = 8.0, 3.67
-
-# Maria DB connection
-mdb_host = "127.0.0.1"
-mdb_port = 3306
-mdb_db = "gwm"
-mdb_user = "gwm_client"
-mdb_password = "<mariadb_password>"
-
-# Image folder
-root_dir = os.path.join('/home', 'stela', 'gwm')
-img_folder = os.path.join(root_dir, "webserver", "static", "images") 
-matplotlib.use('Agg')
 
 
 def extract_date(date_str):
