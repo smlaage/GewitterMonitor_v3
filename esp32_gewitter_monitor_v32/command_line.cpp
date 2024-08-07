@@ -668,13 +668,13 @@ void CommandLine::show_help(void) {
   Serial.println(" - gt <Enter> - get time");
   Serial.println(" - gc <Enter> - get configuration details");
   Serial.println("Set Commands");
-  Serial.println(" - sa <int><Enter> - set alaram level (500 ... 50000)");
+  Serial.println(" - sa <int><Enter> - set alarm level (500 ... 50000)");
   Serial.println(" - sd <dd-mm-yy><Enter> - set date");
   Serial.println(" - sf <Enter> - factory reset");
-  Serial.println(" - sh <hpa><Enter> - set current air pressure (hPa * 10, 9000 ... 12000");
+  Serial.println(" - sh <hpa><Enter> - set current air pressure (hPa * 10, 9000 ... 12000)");
   Serial.println(" - sm <int><Enter> - set minimum scale for the display (300 ... 3000)");
   Serial.println(" - so <int><Enter> - set display timepout (0 ... 60 minutes)");
-  Serial.println(" - sr <int><Enter> - set detetcion threshold (25 ... 1000)");
+  Serial.println(" - sr <int><Enter> - set detection threshold (25 ... 1000)");
   Serial.println(" - ss <int><Enter> - set flash status (0 = off, 1 = on)");
   Serial.println(" - st <hh:mm><Enter> - set time");
   Serial.println(" - su <int><Enter> - set flash duration (5 ... 1000 msec)");
