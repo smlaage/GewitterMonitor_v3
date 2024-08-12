@@ -559,8 +559,9 @@ int CommandLine::network_connect(void) {
     }
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("\n - connection failed!");
-      tft.show_message("Network failed!");
       network_status = 0;
+      tft.show_message("Network failed!");
+	  tft.show_network_status(network_status);
     } else {
       Serial.print("\n - connected to '");
       Serial.print(gl_network_ssid);
@@ -568,11 +569,10 @@ int CommandLine::network_connect(void) {
       Serial.print(" - IP: ");
       Serial.println(WiFi.localIP());
       Serial.println();
-      tft.show_message("Network connected");
       network_status = 1;
-      delay(5);
+      tft.show_message("Network connected");
+	  tft.show_network_status(network_status);
     }
-    tft.show_network_status(network_status);
   }
 
   // step 2: connecting to MQTT
@@ -582,16 +582,17 @@ int CommandLine::network_connect(void) {
       Serial.print("MQTT client at "); Serial.print(gl_mqtt_host_ip_char); Serial.print("/"); Serial.println(gl_mqtt_port);
       client.setServer(gl_mqtt_host_ip_char, gl_mqtt_port);
       if (client.connect(gl_host_name_char, gl_mqtt_user_char, gl_mqtt_password_char)) {
+        network_status = 2;
+		tft.show_network_status(network_status);
         Serial.println("Connected to MQTT broker");
         tft.show_message("MQTT connected");
-        network_status = 2;
       } else {
-        tft.show_message("MQTT failed!");
-        Serial.println("MQTT connection failed!");
         network_status = 1;
+        tft.show_network_status(network_status);
+        Serial.println("MQTT connection failed!");
+		tft.show_message("MQTT failed!");
       }
     }
-    tft.show_network_status(network_status);
     delay(5);
   }
 
