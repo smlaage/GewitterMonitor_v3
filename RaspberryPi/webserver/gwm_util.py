@@ -109,7 +109,7 @@ def get_record_cnt():
     return cnt
 
 
-def get_recent_data(minutes_cnt=120):
+def get_recent_data(cnt=120):
     """ Retrieves the most recent data from the database """
     # connect to database
     try:
@@ -125,11 +125,8 @@ def get_recent_data(minutes_cnt=120):
         return None
     # Retrieve data
     cur = conn.cursor()
-    # Get data for most recent 60 minutes
-    cutoff = time.localtime(time.time() - minutes_cnt * 60)
-    sql = "SELECT * FROM gwm.strikes WHERE ts >= '{:04d}-{:02d}-{:02d} {:02d}:{:02d}';".format(
-        cutoff[0], cutoff[1], cutoff[2], cutoff[3], cutoff[4])
-    # sql = "SELECT * FROM gwm.strikes WHERE ts >= '2024-07-28 00:10:00' AND ts <= '2024-07-28 02:00:00'"
+    # Get data for most recent data
+    sql = "SELECT * FROM gwm.strikes ORDER BY ts DESC LIMIT {:d};".format(cnt)
     # print(sql)
     cur.execute(sql)
     table = cur.fetchall()
