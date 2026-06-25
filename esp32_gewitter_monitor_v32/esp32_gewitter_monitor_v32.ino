@@ -287,7 +287,7 @@ void setup() {
   gl_mqtt_topic = prefs.getString(nvs_mqtt_topic);
   gl_mqtt_topic.toCharArray(gl_mqtt_topic_char, 32);
 
-  Wire.begin();
+  Wire.begin(21, 22);
   Wire.setClock(400000);
   
   // Prepare ADC
