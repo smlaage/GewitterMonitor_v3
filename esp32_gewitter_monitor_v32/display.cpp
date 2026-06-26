@@ -411,7 +411,7 @@ void Display::draw_y_axis(uint32_t scale_max) {
   etft.setTextDatum(TR_DATUM);
   etft.setTextColor(axis_color, TFT_BLACK);
   // Switch display to 'xxx k' in case of values above 1000
-  if (y_scale_max > 1000) {
+  if (scale_max > 1000) {
     ultoa(scale_max / 1000, buf, 10);
     strcat(buf, " k");
   } else {
