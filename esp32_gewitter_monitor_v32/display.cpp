@@ -410,7 +410,13 @@ void Display::draw_y_axis(uint32_t scale_max) {
   etft.fillRect(x_scale_max, y_scale_max, x_delete_area, 16, TFT_BLACK);
   etft.setTextDatum(TR_DATUM);
   etft.setTextColor(axis_color, TFT_BLACK);
-  ultoa(scale_max, buf, 10);
+  // Switch display to 'xxx k' in case of values above 1000
+  if (y_scale_max > 1000) {
+    ultoa(scale_max / 1000, buf, 10);
+    strcat(buf, " k");
+  } else {
+    ultoa(scale_max, buf, 10);
+  }
   etft.drawString(buf, x_max, y_scale_max, 1);
 
   etft.fillRect(x_org + 2, 1, 38, y_org + 7, TFT_BLACK);
